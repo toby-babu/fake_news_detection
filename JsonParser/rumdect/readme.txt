@@ -1,0 +1,4 @@
+- Twitter Data (Twitter.txt): This corpus contains 992 labeled events in total. Each line contains one event with the ids of relevant tweets: event_id, label, tweet_ids. For the labels, the value is 1 if the event is a rumor, and is 0 otherwise. Note that we cannot release the specific content of tweets due to the terms of use of Twitter data. Users can download the content themselves via Twitter API. 
+
+- Weibo Data (Weibo.txt): This corpus contains 4664 labeled events in total. Each line contains one event with ids of relevent posts with format: event_id, label, post_ids. For the labels, the value is 1 if the event is a rumor, and is 0 otherwise. We also release the content of all the posts in json format which are saved in the ./Weibo directory, where each file is named as event_id.json, corresponding to individual event.
+ 
