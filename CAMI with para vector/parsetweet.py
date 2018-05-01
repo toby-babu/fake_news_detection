@@ -138,47 +138,34 @@ def genWordIdIntervals(time_interval):
             word_id_intervals.append([getWordID(Config.NULL)])
     return word_id_intervals
 
-def load_embeddings(filename, train_sent, test_sent, final_index):
+def load_embeddings(filename, full_sent, final_index):
     #dictionary, word_embeds = pickle.load(open(filename, 'rb'))
     word_embeds = Doc2Vec.load(filename)
-    '''
-    fake_file_train = open("fake_doc2vec_with_id_train.txt", "r")
-    non_fake_file_train = open("non_fake_doc2vec_with_id_train.txt", "r")
-    fake_file_test = open("fake_doc2vec_with_id_test.txt", "r")
-    non_fake_file_test = open("non_fake_doc2vec_with_id_test.txt", "r")
-    fake_full_data_train = fake_file_train.readlines()
-    non_fake_full_data_train = non_fake_file_train.readlines()
-    fake_full_data_test = fake_file_test.readlines()
-    non_fake_full_data_test = non_fake_file_test.readlines()
-    '''
-    #total_len = len(train_sent) + len(test_sent)
 
     embedding_array = np.zeros((final_index, Config.embedding_dim))
-    for item in train_sent:
+    for item in full_sent:
         #current_line = item.split()
         for para in item:
-            if para[1] == 0:
-                index = 'TRAIN_NEG_' + str(para[0])
-            else:
-                index = 'TRAIN_POS_' + str(para[0])
-            embedding_array[para[2]] = word_embeds.docvecs[index]
-
+            index = 'FULL_' + str(para)
+            embedding_array[para] = word_embeds.docvecs[index]
+    '''
     for item in test_sent:
-        #current_line = item.split()
-        #index = 'TRAIN_NEG_' + str(current_line[2])
-        #embedding_array[int(current_line[2])] = word_embeds.docvecs[index]
         for para in item:
-            if para[1] == 0:
-                index = 'TEST_NEG_' + str(para[0])
-            else:
-                index = 'TEST_POS_' + str(para[0])
+            index = 'TEST_' + str(para[0])
             embedding_array[para[2]] = word_embeds.docvecs[index]
 
+    for item in dev_sent:
+        for para in item:
+            index = 'DEV_' + str(para[0])
+            embedding_array[para[2]] = word_embeds.docvecs[index]
+    '''
     return embedding_array
 
 dir = "./rumdect/"
-train_data = open("train_sentence_mixed_with_eventpara_id.txt", "r")
-test_data = open("test_sentence_mixed_with_eventpara_id.txt", "r")
+train_data = open("Train_Data_Final.txt", "r")
+test_data = open("Test_Data_Final.txt", "r")
+dev_data = open("Dev_Data_Final.txt", "r")
+full_data = open("FULL_ID.txt", "r")
 #events_file = open(dir+"events_used.txt", "r")
 #fake_file = open("fake_used_doc2vec_with_id.txt", "a")
 #non_fake_file = open("non_fake_used_doc2vec_with_id.txt", "a")
@@ -187,34 +174,34 @@ total_data = []
 total_dev_data = []
 train_full_data = train_data.readlines()
 test_full_data = test_data.readlines()
+dev_full_Data = dev_data.readlines()
+full_data_line = full_data.readlines()
 train_events = []
 train_labels = []
 test_events = []
 test_labels = []
 dev_labels = []
 dev_events = []
+full_events = []
 
 #events_file_data = events_file.readlines()
-'''
-j = 0
-for i in xrange(len(events_file_data)):
-    items = events_file_data[i].split()
-    eventid = items[0].split(':')
-    labelid = items[1].split(':')
-    train_events.append(str(eventid[1]) + "_" + str(labelid[1]) + ".txt")
-    if labelid[1] == "0":
-        non_fake_file.write(items[0] + " " + items[1] + " " + str(j) + "\n")
-    else:
-        fake_file.write(items[0] + " " + items[1] + " " + str(j) + "\n")
-    j = j + 1
-'''
-z = 0
-for i in xrange(len(test_full_data)):
-    items = test_full_data[i].split()
+full_index = 0
+for i in xrange(len(full_data_line)):
+    items = full_data_line[i].split()
     eventid = items[0].split(':')
     labelid = items[1].split(':')
     #train_events.append(str(eventid[1]) + "_" + str(labelid[1]) + ".txt")
-    dev_events.append([int(items[2]), int(labelid[1]), z])
+    full_events.append([eventid[1], int(labelid[1]), int(items[2])])
+    full_index = full_index + 1
+
+
+z = 0
+for i in xrange(len(dev_full_Data)):
+    items = dev_full_Data[i].split()
+    eventid = items[0].split(':')
+    labelid = items[1].split(':')
+    #train_events.append(str(eventid[1]) + "_" + str(labelid[1]) + ".txt")
+    dev_events.append([eventid[1], int(labelid[1]), int(items[2])])
     z = z + 1
     if labelid[1] == "0":
         dev_labels.append([0.0, 1.0])
@@ -227,129 +214,43 @@ for i in xrange(len(train_full_data)):
     eventid = items[0].split(':')
     labelid = items[1].split(':')
     #train_events.append(str(eventid[1]) + "_" + str(labelid[1]) + ".txt")
-    train_events.append([int(items[2]), int(labelid[1]), z])
+    train_events.append([eventid[1], int(labelid[1]), int(items[2])])
     z = z + 1
     if labelid[1] == "0":
         train_labels.append([0.0, 1.0])
     else:
         train_labels.append([1.0, 0.0])
-'''
-dev_data = open("dev_data.txt", "r")
-dev_events = []
-dev_full_data = dev_data.readlines()
-for i in xrange(len(dev_full_data)):
-    items = dev_full_data[i].split()
-    eventid = items[0].split(':')
-    labelid = items[1].split(':')
-    dev_events.append(str(eventid[1]) + "_" + str(labelid[1]) + ".txt")
-    if labelid[1] == "0":
-        dev_labels.append([0.0, 1.0])
-    else:
-        dev_labels.append([1.0, 0.0])
 
-test_data = open("test_data.txt", "r")
-test_events = []
-test_full_data = test_data.readlines()
-for i in xrange(len(test_full_data)):
-    items = test_full_data[i].split()
-    eventid = items[0].split(':')
-    labelid = items[1].split(':')
-    test_events.append(str(eventid[1]) + "_" + str(labelid[1]) + ".txt")
-
-def get_event_sents(eventIds):
-    for event1 in eventIds:
-        json_post_dir = dir+"twitterdata/"
-        full_dir = json_post_dir + event1
-        print full_dir
-        data = json.load(open(full_dir))
-        #data = json.load(open("./rumdect/twitterdata/E180_1.txt"))
-
-        pprint(data[0]['created_at'])
-        parsed_date = parser.parse(data[0]['created_at'])
-        timestamp = calendar.timegm(parsed_date.timetuple())
-
-        data = sorted(data, key=lambda dct: calendar.timegm(parser.parse(dct['created_at']).timetuple()))
-        for item in data:
-            item['created_at'] = calendar.timegm(parser.parse(item['created_at']).timetuple())
-
-        temp = data[0]['created_at']
-        sum = 0
-        for item in data:
-            item['created_at'] = item['created_at'] - temp
-            sum = sum + item['created_at']
-
-        for item in data:
-            item['t'] = float(item['created_at'])/sum
-
-        #temp = data[len(data) - 1]['t']
-        print (data[len(data) - 1]['created_at'])/20
-
-        j = 0
-        time_intervals = []
-        interval = []
-        current_index_float = 0.0
-        current_index = 0
-        genDictionaries(data, False)
-        wordid_tweets = genWordIdIntervals(data)
-        div_val = len(wordid_tweets) / 20
-        div_val_float = float(len(wordid_tweets)) / 20
-        div_val_float = div_val_float - div_val
-        print(div_val_float)
-        for i in xrange(len(wordid_tweets)):
-            if current_index >= div_val:
-                current_index_float = current_index_float + div_val_float
-                if current_index_float >= 1.0:
-                    current_index_float = current_index_float - 1.0
-                    interval.extend(collections.Counter(wordid_tweets[i]))
-                    #interval.append(data[i]['text'])
-                    current_index = 0
-                    time_intervals.append(interval)
-                    interval = []
-                    continue
-                else:
-                    current_index = 0
-                    time_intervals.append(interval)
-                    interval = []
-            interval.extend(collections.Counter(wordid_tweets[i]))
-            current_index = current_index + 1
-
-        if (current_index_float + 0.000000001) > 1.0:
-            time_intervals[len(time_intervals) - 1].extend(collections.Counter(interval))
-            interval = []
-        if len(interval) > 0:
-            time_intervals.append(interval)
-
-        print "Total Number of intervals",len(time_intervals)
-        total_dev_data.append(time_intervals)
-        if len(time_intervals) != 20:
-            print "Error"
-    return total_dev_data
-'''
 
 def get_train_sents(eventIds, z):
     time_intervals = []
     for event in eventIds:
         interval = []
-        k = event[0] * 20
+        k = event[2] * 20
         for m in xrange(k, k + 20):
-            interval.append([m, event[1], z])
+            interval.append(m)
             z = z + 1
         time_intervals.append(interval)
     return time_intervals, z
 
+
+embed_index = 0
+full_sents, embed_index = get_train_sents(full_events, embed_index)
+embedding_filename = 'sentiment140.d2v'#'word2vec.model'
+embedding_array = load_embeddings(embedding_filename, full_sents, embed_index)
 embed_index = 0
 train_sents, embed_index = get_train_sents(train_events, embed_index)
+#test_sents, embed_index  = get_train_sents(test_events, embed_index)
 dev_sents, embed_index  = get_train_sents(dev_events, embed_index)
 #dev_sents = get_event_sents(dev_events)
-embedding_filename = 'sentiment140.d2v'#'word2vec.model'
-embedding_array = load_embeddings(embedding_filename, train_sents, dev_sents, embed_index)
 
-train_ids = []
-train_sents = np.array(train_sents)
-train_ids = train_sents[:,:,2]
-dev_sents = np.array(dev_sents)
-dev_ids = dev_sents[:,:,2]
-print train_ids
+
+#train_ids = []
+#train_sents = np.array(train_sents)
+#train_ids = train_sents[:,:,2]
+#dev_sents = np.array(dev_sents)
+#dev_ids = dev_sents[:,:,2]
+#print train_ids
 print len(embedding_array)
 
 
@@ -420,18 +321,18 @@ with tf.Graph().as_default():
 
         # Training loop. For each batch...
         for step in range(Config.num_epochs):
-            start = (step * Config.batch_size) % len(train_ids)
-            end = ((step + 1) * Config.batch_size) % len(train_ids)
+            start = (step * Config.batch_size) % len(train_sents)
+            end = ((step + 1) * Config.batch_size) % len(train_sents)
             if end < start:
                 start -= end
-                end = len(train_ids)
-            batch_inputs, batch_labels = train_ids[start:end], train_labels[start:end]
+                end = len(train_sents)
+            batch_inputs, batch_labels = train_sents[start:end], train_labels[start:end]
             train_step(batch_inputs, batch_labels)
             current_step = tf.train.global_step(sess, global_step)
 
             if current_step % Config.evaluate_every == 0:
                 # print("\nEvaluation:")
-                dev_step(dev_ids, dev_labels)
+                dev_step(dev_sents, dev_labels)
             if (current_step == Config.stop_step):
                 break
 
